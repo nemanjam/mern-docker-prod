@@ -3,6 +3,7 @@ version: '3.8'
 services:
   mdp-client:
     container_name: mdp-client
+    restart: unless-stopped
     build:
       context: ./client
       dockerfile: docker/Dockerfile
@@ -18,6 +19,7 @@ services:
 
   mdp-server:
     container_name: mdp-server
+    restart: unless-stopped
     build:
       context: ./server
       dockerfile: docker/Dockerfile
@@ -34,18 +36,17 @@ services:
       - internal-client
 
   mdp-mongo:
-    image: mongo
+    image: mongo:6.0.3
     container_name: mdp-mongo
     restart: unless-stopped
     ports:
       - '27017'
     environment:
-      - MONGO_INITDB_DATABASE=mern_docker_starter
-      - MONGO_INITDB_USER=local_user
-      - MONGO_INITDB_PASSWORD=Password123
+      - MONGO_INITDB_DATABASE=mdp-mongo
+      - MONGO_INITDB_ROOT_USERNAME=mdp-user
+      - MONGO_INITDB_ROOT_PASSWORD=mdp-password
     volumes:
-      - ./backend/docker-setup/mongo/db-init.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
-      - ./backend/docker-setup/mongo/mongo-volume:/data/db
+      - ./server/docker/mongo-data:/data/db
     networks:
       - default
 
