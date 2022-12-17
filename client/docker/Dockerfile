@@ -1,53 +1,30 @@
-#
-# Stage 1: React production build
-#
-FROM node:16-slim as frontend
 
-# Create app directory
-WORKDIR /frontend
+# both stages must use alpine
+FROM node:16.19.0-alpine as build
 
-# Install app dependencies
-COPY package.json yarn.lock ./
+WORKDIR /app
 
-RUN yarn install
+COPY package*.json ./
+RUN npm ci --silent
 
-COPY . .
+COPY . ./
 
 ENV NODE_ENV=production
-
-RUN yarn build
+RUN npm run build
 
 EXPOSE 3000
 
-#
-# Stage 2: Nginx as a proxy & static file server
-#
-FROM nginx:1.23.0
+#-----------------------
 
-# Set working directory to nginx asset directory
+FROM nginx:1.23.3-alpine
+
 WORKDIR /usr/share/nginx/html
 
-RUN apt-get update && apt-get install -y certbot python3-certbot-nginx vim
-
-# Remove default nginx configuration
 RUN rm /etc/nginx/conf.d/*
-
-# Remove default nginx static assets
 RUN rm -rf /usr/share/nginx/html/*
 
-# Copy static assets from builder stage
-COPY --from=frontend /frontend/build .
-
-# Update the nginx config with our own config file
-COPY --from=frontend /frontend/docker-setup/nginx/mern-template.conf /etc/nginx/conf.d/
+COPY --from=build /app/build .
+COPY --from=build /app/docker/default.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
-
-RUN useradd -ms /bin/bash nonroot
-
-RUN chown -R nonroot:nonroot /etc/nginx/conf.d/ /var/cache/nginx/ /var/run/
-
-USER nonroot
-
-# Containers run nginx with global directives and daemon off
 ENTRYPOINT ["nginx", "-g", "daemon off;"]
