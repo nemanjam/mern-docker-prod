@@ -6,6 +6,7 @@ ENV USER=node
 RUN mkdir -p /home/node/app
 WORKDIR /home/node/app
 
+# relative to build context
 COPY . ./
 COPY package*.json ./
 

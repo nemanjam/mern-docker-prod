@@ -7,6 +7,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci --silent
 
+# relative to build context
 COPY . ./
 
 ENV NODE_ENV=production
@@ -16,7 +17,8 @@ EXPOSE 3000
 
 #-----------------------
 
-FROM nginx:1.23.3-alpine
+# this has no node, works only for CSR
+FROM nginx:1.23.3-alpine as webserver
 
 WORKDIR /usr/share/nginx/html
 

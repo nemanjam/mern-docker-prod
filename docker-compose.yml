@@ -5,10 +5,12 @@ services:
     container_name: mdp-client
     restart: unless-stopped
     build:
+      # src must be in context
       context: ./client
       dockerfile: docker/Dockerfile
     depends_on:
       - mdp-server
+    # nginx ports
     ports:
       - '80:80'
       - '443:443'
