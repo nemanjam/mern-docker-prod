@@ -4,20 +4,34 @@ services:
   mdp-client:
     container_name: mdp-client
     restart: unless-stopped
+
+    # in prod use image to avoid building on server
+    # image: ...
+
     build:
       # src must be in context
       context: ./client
       dockerfile: docker/Dockerfile
     depends_on:
       - mdp-server
-    # nginx ports
-    ports:
-      - '80:80'
-      - '443:443'
     networks:
       - internal-client
     environment:
       - NODE_ENV=production
+    env_file:
+      - ./client/.env
+
+    # nginx ports
+    # either open port or route through traefik
+    ports:
+      - '3002:80'
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=proxy'
+      - 'traefik.http.routers.mb-client-secure.rule=Host(`${SITE_HOSTNAME}`)'
+      - 'traefik.http.routers.mb-client-secure.entrypoints=websecure'
+      - 'traefik.http.routers.mb-client-secure.service=mb-client-svc'
+      - 'traefik.http.services.mb-client-svc.loadbalancer.server.port=80'
 
   mdp-server:
     container_name: mdp-server
@@ -32,7 +46,7 @@ services:
     environment:
       - NODE_ENV=production
     env_file:
-      - ./server/.env.production
+      - ./server/.env
     networks:
       - default
       - internal-client
@@ -43,10 +57,12 @@ services:
     restart: unless-stopped
     ports:
       - '27017'
-    environment:
-      - MONGO_INITDB_DATABASE=mdp-mongo
-      - MONGO_INITDB_ROOT_USERNAME=mdp-user
-      - MONGO_INITDB_ROOT_PASSWORD=mdp-password
+    # environment:
+    #   - MONGO_INITDB_DATABASE=mdp-mongo
+    #   - MONGO_INITDB_ROOT_USERNAME=mdp-user
+    #   - MONGO_INITDB_ROOT_PASSWORD=mdp-password
+    env_file:
+      - ./server/.env
     volumes:
       - ./server/docker/mongo-data:/data/db
     networks:
