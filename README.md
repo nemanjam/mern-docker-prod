@@ -26,7 +26,7 @@ scp ./apps/mern-boilerplate/.env ubuntu@amd1:~/traefik-proxy/apps/mern-boilerpla
 
 #### Troubleshooting MongoDB connection running in a container
 
-#### Error 1: `MongoError: Authentication failed`
+##### Error 1: `MongoError: Authentication failed`
 
 - Solution: append `?authSource=admin` to connection string
 - **Important:** must delete files in `server/docker/mongo-data` volume
@@ -42,7 +42,7 @@ sudo rm -rf ./server/docker/mongo-data/.mongodb
 MONGO_URI_PROD=mongodb://username:$password@mongo-service:27017/db-name?authSource=admin
 ```
 
-#### Error 2: `MongooseServerSelectionError: getaddrinfo EAI_AGAIN mdp-mongo`
+##### Error 2: `MongooseServerSelectionError: getaddrinfo EAI_AGAIN mdp-mongo`
 
 - Solution 1: add default network in `docker-compose.yml` mongo and server services
 
