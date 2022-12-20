@@ -1,13 +1,19 @@
 version: '3.8'
 
+# alternative 1 - inject separate env files into containers
+# env_file:
+#   - ./client/.env
+# env_file:
+#   - ./server/.env
+#
+# alternative 2 - put all vars into single .env and forward vars through docker-compose.yml
+# environment: ...
+
 services:
   mdp-client:
     container_name: mdp-client
     restart: unless-stopped
-
-    # in prod use image to avoid building on server
-    # image: ...
-
+    image: nemanjamitic/mern-boilerplate-client:latest
     build:
       # src must be in context
       context: ./client
@@ -18,17 +24,22 @@ services:
       - internal-client
     environment:
       - NODE_ENV=production
-    env_file:
-      - ./client/.env
+      # forwarded
+      - REACT_APP_BASE_URL
+    # env_file:
+    #   - ./client/.env
 
     # nginx ports
     # either open port or route through traefik
-    ports:
-      - '3002:80'
+    # ports:
+    # - '3080:80'
+    # - '3443:443' # must edit nginx.conf
+
+    # handles everything except /api and /public/images
     labels:
       - 'traefik.enable=true'
       - 'traefik.docker.network=proxy'
-      - 'traefik.http.routers.mb-client-secure.rule=Host(`${SITE_HOSTNAME}`)'
+      - 'traefik.http.routers.mb-client-secure.rule=Host(`${SITE_HOSTNAME}`) && !(PathPrefix(`/api`) || PathPrefix(`/auth`) || PathPrefix(`/public/images`))'
       - 'traefik.http.routers.mb-client-secure.entrypoints=websecure'
       - 'traefik.http.routers.mb-client-secure.service=mb-client-svc'
       - 'traefik.http.services.mb-client-svc.loadbalancer.server.port=80'
@@ -36,20 +47,46 @@ services:
   mdp-server:
     container_name: mdp-server
     restart: unless-stopped
+    image: nemanjamitic/mern-boilerplate-server:latest
     build:
       context: ./server
       dockerfile: docker/Dockerfile
     depends_on:
       - mdp-mongo
-    ports:
-      - '5000'
     environment:
       - NODE_ENV=production
-    env_file:
-      - ./server/.env
+      # forwarded
+      - MONGO_URI_PROD
+      - GOOGLE_CLIENT_ID
+      - GOOGLE_CLIENT_SECRET
+      - GOOGLE_CALLBACK_URL
+      - FACEBOOK_APP_ID
+      - FACEBOOK_SECRET
+      - FACEBOOK_CALLBACK_URL
+      - JWT_SECRET_PROD
+      - CLIENT_URL_PROD
+      - SERVER_URL_PROD
+    # env_file:
+    #   - ./server/.env
+    volumes:
+      - ./server/public/images:/home/node/app/server/public/images
     networks:
       - default
       - internal-client
+
+    # either open port or route through traefik
+    # ports:
+    #   - '5000'
+
+    # must be exposed through traefik too
+    # handles /api, /auth and /public/images
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=proxy'
+      - 'traefik.http.routers.mb-server-secure.rule=Host(`${SITE_HOSTNAME}`) && (PathPrefix(`/api`) || PathPrefix(`/auth`) || PathPrefix(`/public/images`))'
+      - 'traefik.http.routers.mb-server-secure.entrypoints=websecure'
+      - 'traefik.http.routers.mb-server-secure.service=mb-server-svc'
+      - 'traefik.http.services.mb-server-svc.loadbalancer.server.port=80'
 
   mdp-mongo:
     image: mongo:6.0.3
@@ -57,12 +94,13 @@ services:
     restart: unless-stopped
     ports:
       - '27017'
-    # environment:
-    #   - MONGO_INITDB_DATABASE=mdp-mongo
-    #   - MONGO_INITDB_ROOT_USERNAME=mdp-user
-    #   - MONGO_INITDB_ROOT_PASSWORD=mdp-password
-    env_file:
-      - ./server/.env
+    environment:
+      # forwarded
+      - MONGO_INITDB_DATABASE
+      - MONGO_INITDB_ROOT_USERNAME
+      - MONGO_INITDB_ROOT_PASSWORD
+    # env_file:
+    #   - ./server/.env
     volumes:
       - ./server/docker/mongo-data:/data/db
     networks:
