@@ -5,15 +5,13 @@ FROM node:16.19.0-alpine as build
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci --silent
+RUN npm ci
 
 # relative to build context
 COPY . ./
 
 ENV NODE_ENV=production
 RUN npm run build
-
-EXPOSE 3000
 
 #-----------------------
 

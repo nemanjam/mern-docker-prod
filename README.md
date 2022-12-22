@@ -1,6 +1,6 @@
 # Mern Docker prod
 
-This is dockerized Mern repo (Create React App, Express, MongoDB, Nginx, pm2, Traefik) meant for production environments and client side rendering where static assets are served by Nginx. It uses strategy with two separate images for client and server. Both client and server containers are then routed to subdomain and exposed through Traefik reverse proxy.
+This is dockerized Mern repo template (Create React App, Express, MongoDB, Nginx, pm2, Traefik) meant for production environments and client side rendering where static assets are served by Nginx. It uses strategy with two separate images for client and server. Both client and server containers are then routed to subdomain and exposed through Traefik reverse proxy.
 
 ## How to use this
 
@@ -14,6 +14,7 @@ This is dockerized Mern repo (Create React App, Express, MongoDB, Nginx, pm2, Tr
 ## Related projects and example deployment
 
 - [https://github.com/nemanjam/traefik-proxy](https://github.com/nemanjam/traefik-proxy) - here you can find complete Traefik deployment with Mern example on this path [traefik-proxy/apps/mern-boilerplate](https://github.com/nemanjam/traefik-proxy/tree/main/apps/mern-boilerplate)
+- this template is used to dockerize this example Mern app [mern-boilerplate](https://github.com/nemanjam/mern-boilerplate)
 
 ## Deployments tips
 

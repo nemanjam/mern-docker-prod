@@ -11,3 +11,5 @@ LICENCE
 **/node_modules
 **/build
 
+screenshots/
+server/public/images/*
